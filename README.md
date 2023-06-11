@@ -58,3 +58,9 @@
 2. Get All Employee Details
 3. Get Employee Details
     - By NIC
+
+4. Add Salary Details by Selecting NIC
+5. Get Salary Details By NIC
+6. Print Salary Slip
+
+- Finalize All Detail
