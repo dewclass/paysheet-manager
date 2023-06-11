@@ -3,16 +3,30 @@ import argparse
 # Example usage
 file_path = 'employee_details.txt'
 
+def check_duplicate_nic(file_path, nic):
+    with open(file_path, 'r') as file:
+        for line in file:
+            line = line.strip()
+            if line:  # Skip empty lines
+                _, line_nic = line.split(',')
+                if line_nic == nic:
+                    return True
+    return False
+
 def save_employee_details(file_path):
     while True:
         employee_name = input("Enter employee name (or 'q' to quit): ")
         if employee_name.lower() == 'q':
             break
         employee_nic = input("Enter employee NIC: ")
+        if check_duplicate_nic(file_path, employee_nic):
+            print("NIC already exists. Employee details not saved.")
+            continue
         employee_details = {'Name': employee_name, 'NIC': employee_nic}
         with open(file_path, 'a') as file:
             file.write(
                 f"{employee_details['Name']},{employee_details['NIC']}\n")
+
 
 
 def get_employee_details(file_path):
