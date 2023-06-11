@@ -3,16 +3,25 @@ import argparse
 # Example usage
 employee_file_path = 'employee_details.txt'
 salary_file_path = 'salary_details.txt'
+allowance_file_path = 'allowance_details.txt'
+
+epf_percentage_employeer = 12
+epf_percentage_employee = 8
+etf_percenrage = 3
 
 def check_duplicate_nic(file_path, nic):
-    with open(file_path, 'r') as file:
-        for line in file:
-            line = line.strip()
-            if line:  # Skip empty lines
-                _, line_nic = line.split(',')
-                if line_nic == nic:
-                    return True
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line:  # Skip empty lines
+                    _, line_nic = line.split(',')
+                    if line_nic == nic:
+                        return True
+    except FileNotFoundError:
+        return False
     return False
+
 
 def save_employee_details(file_path):
     while True:
@@ -52,7 +61,53 @@ def get_employee_details_by_nic(file_path, nic):
                     return name, line_nic
     return None, None
 
-def add_salary_details(file_path, salary_file_path):
+def view_salary_details_by_nic(salary_file_path, nic):
+    try:
+        with open(salary_file_path, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line:  # Skip empty lines
+                    name, line_nic, salary, bonus = line.split(',')
+                    if line_nic == nic:
+                        print(f"Name: {name}, NIC: {line_nic}, Salary: {salary}, Bonus: {bonus}")
+                        return
+    except FileNotFoundError:
+        print("Salary file not found.")
+
+    print("Salary details not found for the provided")
+
+
+
+def check_duplicate_allowance(file_path, allowance_name):
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line:  # Skip empty lines
+                    existing_name, _ = line.split(',')
+                    if existing_name == allowance_name:
+                        return True
+    except FileNotFoundError:
+        return False
+    return False
+
+
+def add_allowance(file_path):
+    allowance_name = input("Enter allowance name: ")
+
+    if check_duplicate_allowance(file_path, allowance_name):
+        print("Allowance already exists.")
+        return
+
+    allowance_amount = input("Enter allowance amount: ")
+
+    with open(file_path, 'a') as file:
+        file.write(f"{allowance_name},{allowance_amount}\n")
+
+    print("Allowance added successfully.")
+
+
+def add_salary_details(file_path, allowance_file_path, salary_file_path):
     nic_number = input("Enter NIC number: ")
     employee_found = False
 
@@ -70,33 +125,98 @@ def add_salary_details(file_path, salary_file_path):
                     salary = input("Enter salary: ")
                     bonus = input("Enter bonus: ")
 
+                    # Select allowances from the allowance file
+                    allowances = select_allowances(allowance_file_path)
+
                     # Append salary details to the salary file
                     with open(salary_file_path, 'a') as salary_file:
-                        salary_file.write(f"{name},{nic_number},{salary},{bonus}\n")
+                        salary_file.write(f"{name},{nic_number},{salary},{bonus}")
+                        for allowance_name, allowance_amount in allowances.items():
+                            salary_file.write(f",{allowance_name},{allowance_amount}")
+                        salary_file.write("\n")
 
                     print("Salary details added successfully.")
 
     if not employee_found:
         print("Employee not found.")
 
+def select_allowances(allowance_file_path):
+    allowances = {}
 
-def view_salary_details_by_nic(salary_file_path, nic):
+    # Read and display the available allowances
+    with open(allowance_file_path, 'r') as allowance_file:
+        lines = allowance_file.readlines()
+        for i, line in enumerate(lines):
+            allowance_name, allowance_amount = line.strip().split(',')
+            allowances[i + 1] = (allowance_name, allowance_amount)
+            print(f"{i + 1}. {allowance_name} ({allowance_amount})")
+
+    selected_allowances = []
+
+    # Prompt for selection of allowances
+    while True:
+        selection = input("Enter the number of the allowance (or 'q' to quit): ")
+        if selection.lower() == 'q':
+            break
+        try:
+            selection_index = int(selection)
+            if 1 <= selection_index <= len(allowances):
+                selected_allowances.append(allowances[selection_index])
+                print(f"Selected: {allowances[selection_index][0]} ({allowances[selection_index][1]})")
+            else:
+                print("Invalid selection.")
+        except ValueError:
+            print("Invalid input.")
+
+    return dict(selected_allowances)
+
+def print_salary_slip_by_nic(file_path, salary_file_path):
+    nic = input("Enter NIC number: ")
+    name, _ = get_employee_details_by_nic(file_path, nic)
+    
+    if name is None:
+        print("Employee not found")
+        return
+    
+    salary, bonus = None, None
+    
     with open(salary_file_path, 'r') as file:
         for line in file:
             line = line.strip()
-            if line:  # Skip empty lines
-                name, line_nic, salary, bonus = line.split(',')
+            if line:
+                fields = line.split(',')
+                line_nic = fields[1]
                 if line_nic == nic:
-                    print(f"Name: {name}, NIC: {line_nic}, Salary: {salary}, Bonus: {bonus}")
-                    return
+                    salary = fields[2]
+                    bonus = fields[3]
+                    break
+    
+    if salary is None or bonus is None:
+        print("Salary details not found for the provided NIC")
+        return
+    
+    month = input("Enter month: ")
+    
+    print("********** Salary Slip **********")
+    print(f"Month: {month}")
+    print(f"Employee Name: {name}")
+    print(f"NIC: {nic}")
+    print(f"Basic Salary: {salary}")
+    print(f"Bonus: {bonus}")
+    
+    total_salary = int(salary) + int(bonus)
+    
+    print(f"Total Salary: {total_salary}")
+    print("*********************************")
 
-    print("Salary details not found for the provided NIC.")
+
 
 
 
 # Create the command-line argument parser
 parser = argparse.ArgumentParser(description='Select function to run')
-parser.add_argument('action', choices=['view-all', 'add-new','view-by-nic','add-salary'],
+parser.add_argument('action', choices=['view-all', 'add-new','view-by-nic',
+                                       'add-salary',"add-allowance","print-salary"],
                     help='The action to run')
 
 # Parse the command-line arguments
@@ -121,4 +241,10 @@ elif args.action == 'view-by-nic':
     view_salary_details_by_nic(salary_file_path,nic)
     
 elif args.action == "add-salary":
-    add_salary_details(employee_file_path, salary_file_path)
+    add_salary_details(employee_file_path, allowance_file_path, salary_file_path)
+
+elif args.action == "add-allowance":
+    add_allowance(allowance_file_path)
+
+elif args.action == "print-salary":
+    print_salary_slip_by_nic(employee_file_path,salary_file_path)

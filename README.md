@@ -7,6 +7,7 @@
 - At The Registration
   - Salary Package 
     - Basic
+    - Bonus
     - Other Allowance 
   - Employee Details
     - NIC
@@ -62,5 +63,7 @@
 4. Add Salary Details by Selecting NIC
 5. Get Salary Details By NIC
 6. Print Salary Slip
-
-- Finalize All Detail
+  - Select Employee by NIC
+  - Select Employee Salary Details By NIC
+  - Calculate salary
+  - Print Salary Slip
